@@ -1,0 +1,29 @@
+[
+ {
+  "task": "banking77",
+  "source": "PolyAI-LDN/task-specific-datasets (GitHub CSV), CC BY 4.0",
+  "n_train": 10003,
+  "n_test": 3080,
+  "n_labels": 77,
+  "sha256_test": "514685ac0bf3d8d492a5e174f2ac306657602cc5a46e7dd6784ea62da32716a9",
+  "limited": false
+ },
+ {
+  "task": "bitext",
+  "source": "bitext/Bitext-customer-support-llm-chatbot-training-dataset (Bitext_Sample_Customer_Support_Training_Dataset_27K_responses-v11.csv), CDLA-Sharing-1.0",
+  "n_train": 15000,
+  "n_test": 2000,
+  "n_labels": 27,
+  "sha256_test": "d8733d76b738baf6ec2c9b427ab5f5b7ac884c6544947b2c11194339d467ec94",
+  "limited": false
+ },
+ {
+  "task": "clinc150",
+  "source": "clinc/clinc_oos (plus), CC BY 3.0",
+  "n_train": 15250,
+  "n_test": 5500,
+  "n_labels": 151,
+  "sha256_test": "34ec6a3480880e81a03cfed781a1fa4c3f5438bffb43fa7b8d53bdd9ead96611",
+  "limited": false
+ }
+]
