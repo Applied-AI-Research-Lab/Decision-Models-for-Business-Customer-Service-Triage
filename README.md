@@ -9,4 +9,4 @@
 * **Adj. Asst. Prof. Konstantinos I. Roumeliotis | University of Peloponnese**
 * **Asoc. Prof. Dionisis Margaris | University of Peloponnese**
 * **Asoc. Prof. Dimitris Spiliotopoulos | University of Peloponnese**
-* **Prof. Nikolaos D. Tselikas Vassilakis | University of Peloponnese**
+* **Prof. Nikolaos D. Tselikas | University of Peloponnese**
