@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 import random
 
-from .config import OOS_LABEL, ROBUSTNESS_N, SEED, TASKS, TASKS_DIR, records_path
+from .config import (HINT3_BOTS, HINT3_TASKS, OOS_LABEL, ROBUSTNESS_N, SEED, SUBSET_CONDITION, TASKS, TASKS_DIR,
+                     records_path)
 from .utils import get_logger, read_jsonl, write_jsonl
 
 log = get_logger("records")
@@ -15,6 +16,9 @@ INSTRUCTIONS = {
                  "Choose 'oos' (out of scope) if none of the listed intents applies."),
     "clinc150_no_oos": "Which intent does this customer request express?",
 }
+for _bot, _who in HINT3_BOTS.items():
+    INSTRUCTIONS[f"hint3_{_bot}"] = (f"Which customer-service intent does this message from a customer of {_who} express? "
+                                     "Choose 'oos' (out of scope) if none of the listed intents applies.")
 
 OOS_DESCRIPTION = "Out of scope: the request does not match any of the other listed intents."
 
@@ -69,10 +73,37 @@ def build_task(task: str) -> dict[str, int]:
     return counts
 
 
+def build_extra() -> dict[str, dict[str, int]]:
+    out = {}
+    for task in TASKS:
+        labels = json.loads((TASKS_DIR / task / "labels.json").read_text())
+        test = read_jsonl(TASKS_DIR / task / "test.jsonl")
+        subset = robustness_subset(test, task)
+        ref = {r["id"] for r in read_jsonl(records_path(task, "reversed"))} if records_path(task, "reversed").exists() else None
+        if ref is not None and ref != {r["id"] for r in subset}:
+            raise ValueError(f"{task}: subset ids differ from the frozen robustness subset")
+        recs = [make_record(it, task, SUBSET_CONDITION, labels, INSTRUCTIONS[task]) for it in subset]
+        write_jsonl(records_path(task, SUBSET_CONDITION), recs)
+        out[task] = {SUBSET_CONDITION: len(recs)}
+    for task in HINT3_TASKS:
+        labels = json.loads((TASKS_DIR / task / "labels.json").read_text())
+        test = read_jsonl(TASKS_DIR / task / "test.jsonl")
+        recs = [make_record(it, task, "canonical", labels, INSTRUCTIONS[task]) for it in test]
+        write_jsonl(records_path(task, "canonical"), recs)
+        out[task] = {"canonical": len(recs)}
+    return out
+
+
 def main():
+    import sys
+    if "--extra" in sys.argv:
+        for t, c in build_extra().items():
+            log.info("%s: %s", t, c)
+        return
     summary = {t: build_task(t) for t in TASKS}
     for t, c in summary.items():
         log.info("%s: %s", t, c)
+
 
 if __name__ == "__main__":
     main()

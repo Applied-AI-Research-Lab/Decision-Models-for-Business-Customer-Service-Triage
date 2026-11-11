@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 
-from ..config import HF_MODELS
+from ..config import HF_MODELS, HF_REVISIONS
 from ..prompts import clef_record
 from ..utils import Timer, append_jsonl, chunked, get_logger
 from .common import base_parser, jobs, pred_row
@@ -14,7 +14,7 @@ def load(variant: str):
     import torch
     from huggingface_hub import snapshot_download
 
-    path = snapshot_download(HF_MODELS[variant])
+    path = snapshot_download(HF_MODELS[variant], revision=HF_REVISIONS[variant])
     sys.path.insert(0, path)
     from joint_schema_model import collate_records, encode_record, load_release_model
 
@@ -72,6 +72,7 @@ def main():
     for task, cond, recs, out in jobs(args, args.variant):
         run_records(state, recs, out, args.variant, args.batch_size)
         log.info("done %s", out)
+
 
 if __name__ == "__main__":
     main()

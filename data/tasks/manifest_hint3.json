@@ -1,0 +1,29 @@
+[
+ {
+  "task": "hint3_sofmattress",
+  "source": "hellohaptik/HINT3@99965c892ea9a6801a87083d3861b0b04c91a4e7 (dataset/v2), ODbL 1.0",
+  "n_train": 328,
+  "n_test": 397,
+  "n_labels": 22,
+  "sha256_test": "8a6216aabd9d6ccbbe5e6d28573c15060bfe36d7fb9dec8fba5a618b802c693b",
+  "limited": false
+ },
+ {
+  "task": "hint3_curekart",
+  "source": "hellohaptik/HINT3@99965c892ea9a6801a87083d3861b0b04c91a4e7 (dataset/v2), ODbL 1.0",
+  "n_train": 599,
+  "n_test": 991,
+  "n_labels": 29,
+  "sha256_test": "7c892a7f4746184f648a65586705b30a6a0c2b84c89bae4c19b057dca2a86dbc",
+  "limited": false
+ },
+ {
+  "task": "hint3_powerplay11",
+  "source": "hellohaptik/HINT3@99965c892ea9a6801a87083d3861b0b04c91a4e7 (dataset/v2), ODbL 1.0",
+  "n_train": 471,
+  "n_test": 983,
+  "n_labels": 58,
+  "sha256_test": "809b2b952174aa8bbd4c2f1200560406591e60f2aedd204881e129a4297b990e",
+  "limited": false
+ }
+]

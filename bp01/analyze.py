@@ -187,7 +187,6 @@ def make_figures(cache, main_df, eff_df, out_f: Path):
 
     if main_df.empty:
         return
-
     fig, axes = plt.subplots(1, len(TASKS), figsize=(5 * len(TASKS), 4), squeeze=False)
     for ax, t in zip(axes[0], TASKS):
         g = main_df[main_df.task == t]
@@ -240,6 +239,7 @@ def make_figures(cache, main_df, eff_df, out_f: Path):
         ax.set_xscale("log"); ax.set_xlabel("$ per 1,000 decisions (log)"); ax.set_ylabel("Accuracy")
         ax.legend(fontsize=6); fig.tight_layout(); fig.savefig(out_f / "cost_vs_accuracy.png", dpi=200); plt.close(fig)
     log.info("figures written to %s", out_f)
+
 
 if __name__ == "__main__":
     main()

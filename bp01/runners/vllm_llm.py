@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 
-from ..config import (HF_MODELS, READOUT_PRUNE, READOUT_TOP_LOGPROBS, SEED, VLLM_GPU_MEM,
+from ..config import (HF_MODELS, HF_REVISIONS, READOUT_PRUNE, READOUT_TOP_LOGPROBS, SEED, VLLM_GPU_MEM,
                       VLLM_MAX_MODEL_LEN)
 from ..prompts import (READOUT_PREFILL, generative_schema, generative_user_prompt,
                        readout_user_prompt, verbalized_probs)
@@ -17,9 +17,11 @@ log = get_logger("vllm")
 def build_llm(llm_key: str):
     from vllm import LLM
 
-    kwargs = dict(model=HF_MODELS[llm_key], max_model_len=VLLM_MAX_MODEL_LEN,
+    kwargs = dict(model=HF_MODELS[llm_key], revision=HF_REVISIONS.get(llm_key), max_model_len=VLLM_MAX_MODEL_LEN,
                   gpu_memory_utilization=VLLM_GPU_MEM, enable_prefix_caching=True,
                   max_logprobs=READOUT_TOP_LOGPROBS, seed=SEED)
+    if llm_key == "qwen_bf16":
+        kwargs["max_num_seqs"] = 512
     try:
         return LLM(**kwargs, limit_mm_per_prompt={"image": 0, "video": 0})
     except TypeError:
@@ -102,7 +104,7 @@ def run_generative(llm, model_key: str, recs: list[dict], out, chunk_size: int =
 
 def main():
     ap = base_parser("Run Qwen/Gemma with vLLM (readout or generative)")
-    ap.add_argument("--llm", choices=["qwen", "gemma"], required=True)
+    ap.add_argument("--llm", choices=["qwen", "qwen_bf16", "gemma"], required=True)
     ap.add_argument("--mode", choices=["readout", "generative"], required=True)
     args = ap.parse_args()
     model_key = f"{args.llm}_{'readout' if args.mode == 'readout' else 'gen'}"
@@ -113,6 +115,7 @@ def main():
         else:
             run_generative(llm, model_key, recs, out)
         log.info("done %s", out)
+
 
 if __name__ == "__main__":
     main()

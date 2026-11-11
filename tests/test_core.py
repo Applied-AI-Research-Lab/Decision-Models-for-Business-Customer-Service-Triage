@@ -9,6 +9,7 @@ from bp01.prompts import verbalized_probs
 from bp01.readout import score_options
 from bp01.runners.api import parse_response
 
+
 CIDS = {c: i for i, c in enumerate("0123456789]")}
 
 
@@ -19,7 +20,6 @@ def make_backend(target: dict[str, float]):
         out = []
         for ids in batch:
             s = "".join(inv[i] for i in ids[1:])
-
             mass = {}
             for lab, p in target.items():
                 full = lab + "]"

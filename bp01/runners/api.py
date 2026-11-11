@@ -86,5 +86,6 @@ def main():
     for task, cond, recs, out in jobs(args, args.provider):
         asyncio.run(run_file(recs, out, key, cfg, args.provider))
 
+
 if __name__ == "__main__":
     main()

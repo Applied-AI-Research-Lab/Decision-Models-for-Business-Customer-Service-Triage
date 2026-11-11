@@ -4,7 +4,7 @@ import json
 import random
 from collections import Counter
 
-from ..config import HF_MODELS, SEED, TASKS_DIR
+from ..config import HF_MODELS, HF_REVISIONS, SEED, TASKS_DIR
 from ..utils import Timer, append_jsonl, get_logger, read_jsonl
 from .common import base_parser, jobs, pred_row
 
@@ -69,8 +69,8 @@ def run_modernbert(task, recs, out, epochs=3, lr=5e-5, bs=32, max_len=128):
     torch.manual_seed(SEED)
     train, labels = _train(task)
     lab2id = {l: i for i, l in enumerate(labels)}
-    tok = AutoTokenizer.from_pretrained(HF_MODELS["modernbert"])
-    model = AutoModelForSequenceClassification.from_pretrained(HF_MODELS["modernbert"], num_labels=len(labels)).cuda()
+    tok = AutoTokenizer.from_pretrained(HF_MODELS["modernbert"], revision=HF_REVISIONS["modernbert"])
+    model = AutoModelForSequenceClassification.from_pretrained(HF_MODELS["modernbert"], revision=HF_REVISIONS["modernbert"], num_labels=len(labels)).cuda()
     data = [(r["text"], lab2id[r["label"]]) for r in train]
 
     def collate(b):
@@ -106,6 +106,7 @@ def run_modernbert(task, recs, out, epochs=3, lr=5e-5, bs=32, max_len=128):
             rows.append(pred_row(r, "modernbert", probs, t.seconds / len(chunk)))
     append_jsonl(out, rows)
 
+
 RUNNERS = {"tfidf": run_tfidf, "modernbert": run_modernbert, "majority": run_majority, "mock": run_mock}
 
 
@@ -118,6 +119,7 @@ def main():
     for task, cond, recs, out in jobs(args, args.which):
         RUNNERS[args.which](task, recs, out)
         log.info("done %s", out)
+
 
 if __name__ == "__main__":
     main()

@@ -6,7 +6,7 @@ import json
 import re
 from pathlib import Path
 
-from .config import BITEXT_TEST_N, BITEXT_TRAIN_CAP, OOS_LABEL, SEED, TASKS_DIR
+from .config import BITEXT_TEST_N, BITEXT_TRAIN_CAP, HINT3_BOTS, HINT3_COMMIT, OOS_LABEL, SEED, TASKS_DIR
 from .utils import get_logger, write_jsonl
 
 log = get_logger("data")
@@ -72,7 +72,6 @@ def prepare_bitext(limit=None):
     df = pd.read_csv(path)[["instruction", "intent"]].dropna()
     df = df.drop_duplicates(subset=["instruction"]).reset_index(drop=True)
     tr, te = train_test_split(df, test_size=0.2, stratify=df["intent"], random_state=SEED)
-
     train_norm = set(tr["instruction"].map(_norm))
     te = te[~te["instruction"].map(_norm).isin(train_norm)]
     te, _ = train_test_split(te, train_size=min(BITEXT_TEST_N, len(te) - 27), stratify=te["intent"], random_state=SEED)
@@ -102,14 +101,46 @@ def prepare_clinc(limit=None):
     return _save("clinc150", train, test, labels, f"{CLINC_REPO} (plus), CC BY 3.0", limit)
 
 
+HINT3_URL = "https://raw.githubusercontent.com/hellohaptik/HINT3/{sha}/dataset/v2/{split}/{bot}_{split}.csv"
+HINT3_OOS = "NO_NODES_DETECTED"
+
+
+def prepare_hint3(bot: str, limit=None):
+    import pandas as pd
+
+    def load(split):
+        df = pd.read_csv(HINT3_URL.format(sha=HINT3_COMMIT, split=split, bot=bot))[["sentence", "label"]].dropna()
+        df["label"] = [OOS_LABEL if l == HINT3_OOS else str(l).strip().lower() for l in df["label"]]
+        df["sentence"] = df["sentence"].astype(str).str.strip()
+        return df[df["sentence"] != ""].reset_index(drop=True)
+
+    tr, te = load("train"), load("test")
+    labels = sorted(set(tr["label"]) - {OOS_LABEL}) + [OOS_LABEL]
+    unknown = set(te["label"]) - set(labels)
+    if unknown:
+        raise ValueError(f"{bot}: test labels missing from the training intents: {unknown}")
+    task = f"hint3_{bot}"
+    train = [{"id": f"{task}-train-{i:05d}", "text": t, "label": c} for i, (t, c) in enumerate(zip(tr.sentence, tr.label))]
+    test = [{"id": f"{task}-test-{i:05d}", "text": t, "label": c} for i, (t, c) in enumerate(zip(te.sentence, te.label))]
+    return _save(task, train, test, labels, f"hellohaptik/HINT3@{HINT3_COMMIT} (dataset/v2), ODbL 1.0", limit)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--limit", type=int, default=None, help="tiny sample for a quick test")
+    ap.add_argument("--limit", type=int, default=None, help="tiny sample for the Mac preflight")
+    ap.add_argument("--hint3", action="store_true",
+                    help="only prepare HINT3 (writes manifest_hint3.json; the frozen manifest.json is not touched)")
     args = ap.parse_args()
     TASKS_DIR.mkdir(parents=True, exist_ok=True)
+    if args.hint3:
+        man = [prepare_hint3(b, args.limit) for b in HINT3_BOTS]
+        (TASKS_DIR / "manifest_hint3.json").write_text(json.dumps(man, indent=1))
+        log.info("manifest written: %s", TASKS_DIR / "manifest_hint3.json")
+        return
     manifest = [prepare_banking77(args.limit), prepare_bitext(args.limit), prepare_clinc(args.limit)]
     (TASKS_DIR / "manifest.json").write_text(json.dumps(manifest, indent=1))
     log.info("manifest written: %s", TASKS_DIR / "manifest.json")
+
 
 if __name__ == "__main__":
     main()

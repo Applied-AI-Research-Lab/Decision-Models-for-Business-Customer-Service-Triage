@@ -20,6 +20,12 @@ BITEXT_TRAIN_CAP = 15000
 
 OOS_LABEL = "oos"
 
+HINT3_COMMIT = "99965c892ea9a6801a87083d3861b0b04c91a4e7"
+HINT3_BOTS = {"sofmattress": "a mattress retailer", "curekart": "an online health and nutrition store",
+              "powerplay11": "a fantasy-sports gaming app"}
+HINT3_TASKS = [f"hint3_{b}" for b in HINT3_BOTS]
+SUBSET_CONDITION = "subset"
+
 JEV = {
     "base_url": os.environ.get("TYPESAFE_BASE_URL", "https://api.typesafe.ai/v1/systemone"),
     "model": os.environ.get("JEV_MODEL", "jev-1.13.0"),
@@ -46,9 +52,18 @@ HF_MODELS = {
     "clef_flash": "Cloudflare/clef-flash",
     "pplx": "perplexity-ai/pplx-decider-v1.1-27b",
     "qwen": "Qwen/Qwen3.8-27B-FP8",
+    "qwen_bf16": "Qwen/Qwen3.8-27B",
     "gemma": "google/gemma-4-31B-it",
     "modernbert": "answerdotai/ModernBERT-large",
+    "mac_readout": "Qwen/Qwen3-0.6B",
 }
+HF_REVISIONS = {"clef": "0b331204bb13fbd2ca93a64df1956f5b55478ce5",
+                "clef_flash": "8b2e5fd17c09fd49bc2880b805d5323ec7ff4ff3",
+                "pplx": "6195aa55a72ae21e503c8a60198f7b390d42adb5",
+                "gemma": "842da3794eaa0b77d5f08bae87a17459d91ff475",
+                "modernbert": "45bb4654a4d5aaff24dd11d4781fa46d39bf8c13",
+                "qwen": "017b9c7af6b5689d5dd426a76e0bc077eb5ca20a",
+                "qwen_bf16": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"}
 
 READOUT_TOP_LOGPROBS = 64
 READOUT_PRUNE = 1e-5
@@ -74,6 +89,12 @@ def records_path(task: str, condition: str) -> Path:
 
 
 def conditions_for(task: str, model: str) -> list[str]:
+    if task in HINT3_TASKS:
+        return ["canonical"]
+    if model == "qwen_bf16_readout":
+        return ["canonical"] if task == "banking77" else [SUBSET_CONDITION]
+    if model.endswith("_exact"):
+        return [SUBSET_CONDITION]
     conds = ["canonical", "reversed", "shuffled"]
     if task == "clinc150":
         conds.append("no_oos")

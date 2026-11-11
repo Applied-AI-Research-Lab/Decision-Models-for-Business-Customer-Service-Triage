@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from ..config import HF_MODELS
+from ..config import HF_MODELS, HF_REVISIONS
 from ..prompts import pplx_row
 from ..utils import Timer, append_jsonl, chunked, get_logger
 from .common import base_parser, jobs, pred_row
@@ -15,7 +15,7 @@ MODEL_KEY = "pplx"
 def load():
     from huggingface_hub import snapshot_download
 
-    ckpt = Path(snapshot_download(HF_MODELS["pplx"]))
+    ckpt = Path(snapshot_download(HF_MODELS["pplx"], revision=HF_REVISIONS["pplx"]))
     sys.path.insert(0, str(ckpt / "source" / "src"))
     from autojev.model import DecisionModel, answer
 
@@ -71,6 +71,7 @@ def main():
     for task, cond, recs, out in jobs(args, MODEL_KEY):
         run_records(state, recs, out, args.batch_size)
         log.info("done %s", out)
+
 
 if __name__ == "__main__":
     main()

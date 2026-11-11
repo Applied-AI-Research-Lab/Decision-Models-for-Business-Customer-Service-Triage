@@ -13,8 +13,8 @@ def base_parser(desc: str) -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=desc)
     ap.add_argument("--tasks", default="all", help="comma list or 'all'")
     ap.add_argument("--conditions", default="all", help="comma list or 'all' (per-model defaults)")
-    ap.add_argument("--limit", type=int, default=None, help="first N records per file (pilot)")
-    ap.add_argument("--run-name", default="main", help="results/<run-name>/ (e.g. main, pilot)")
+    ap.add_argument("--limit", type=int, default=None, help="first N records per file (pilot/preflight)")
+    ap.add_argument("--run-name", default="main", help="results/<run-name>/ (e.g. pilot, preflight)")
     ap.add_argument("--shard", default="0/1",
                     help="k/n or k1,k2,.../n: only ids with crc32(id) %% n in {k...}. Shards of one model can run "
                          "on several GPUs at once and share the output file (appends are single atomic writes)")
